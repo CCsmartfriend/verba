@@ -144,7 +144,7 @@ const zh: Dict = {
 };
 
 const en: Dict = {
-  appName: "Voicy Style",
+  appName: "Verba Style",
   navWorkbench: "Workbench",
   navProfiles: "Style Profiles",
   navHistory: "History",

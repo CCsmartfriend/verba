@@ -1,12 +1,12 @@
-# Voicy
+# Verba
 
-Voicy is a personal expression style analyser and rewriting prototype. It helps people turn generic AI text into writing that is closer to their own voice.
+Verba is a personal expression style analyser and rewriting prototype. It helps people turn generic AI text into writing that is closer to their own voice.
 
 Live demo: [https://voicy.rjcui2012.workers.dev](https://voicy.rjcui2012.workers.dev)
 
 ## Overview
 
-Most writing assistants optimise for grammar, fluency, or generic polish. Voicy focuses on a different problem: personal expression.
+Most writing assistants optimise for grammar, fluency, or generic polish. Verba focuses on a different problem: personal expression.
 
 Users can create a style profile from their own writing samples, then compare new text against that profile. The app extracts writing signals such as sentence rhythm, paragraph structure, connector usage, tone, pronoun habits, punctuation, emoji usage, and argument patterns. It then rewrites text while trying to preserve meaning, formatting, and the user's stated boundaries.
 
@@ -29,7 +29,7 @@ The current prototype supports a bilingual interface in Chinese and English. The
 
 AI writing often sounds fluent but impersonal. Many users do not want text that simply looks less machine-generated. They want text that sounds like them.
 
-Voicy treats style as a profile built from evidence. It looks at repeated habits in a user's own writing, then uses those signals to guide scoring and rewriting. This makes the product useful for founders, creators, students, researchers, and knowledge workers who need AI assistance without losing their own expression.
+Verba treats style as a profile built from evidence. It looks at repeated habits in a user's own writing, then uses those signals to guide scoring and rewriting. This makes the product useful for founders, creators, students, researchers, and knowledge workers who need AI assistance without losing their own expression.
 
 ## How It Works
 
@@ -37,7 +37,7 @@ Voicy treats style as a profile built from evidence. It looks at repeated habits
 2. The user uploads or pastes past writing samples.
 3. The app extracts a style baseline from those samples.
 4. The user pastes new text into the workbench.
-5. Voicy compares the new text with the selected profile.
+5. Verba compares the new text with the selected profile.
 6. The app rewrites only where needed, while preserving structure and meaning.
 7. The output receives a style match score and dimension-level feedback.
 
@@ -124,7 +124,7 @@ According to the hackathon rules, the project repository must be available to ju
 
 ## How I Used GPT-5.6 and Codex
 
-Voicy was developed through an AI-native workflow. I used GPT-5.6 and Codex as collaborators across product design, engineering, testing, and iteration.
+Verba was developed through an AI-native workflow. I used GPT-5.6 and Codex as collaborators across product design, engineering, testing, and iteration.
 
 ### GPT-5.6
 
