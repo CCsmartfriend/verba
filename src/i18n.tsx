@@ -1,0 +1,325 @@
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+
+export type Lang = "zh" | "en";
+
+type Dict = Record<string, string>;
+
+const zh: Dict = {
+  appName: "风格克隆",
+  navWorkbench: "工作台",
+  navProfiles: "风格档案",
+  navHistory: "历史记录",
+  createStyle: "建立风格",
+  menu: "菜单",
+  language: "Language",
+
+  heroBadge: "AI 风格助手",
+  heroTitle: "让 AI 学会你的表达方式",
+  heroDescription:
+    "上传历史文章、抓取公开链接或粘贴手动样本，系统会建立你的 12 维风格基线。改写时先清理模板化 AI 表达，再按你的句子节奏、结构习惯和常用语气生成风格版。",
+  startRewrite: "开始改写",
+  createProfileFirst: "先建立风格档案",
+  manageStyle: "管理风格",
+  tryFirst: "先试试看",
+  profileApplied: "已套用风格档案 · X 内容",
+  livePreview: "实时预览",
+  rewriteMine: "改成我的风格",
+  styleMatch: "风格匹配度",
+  input: "输入",
+  outputStyle: "你的风格版",
+  adjustedByBaseline: "已按风格基线调整",
+  sentenceRhythm: "句子节奏",
+  expressionCloseness: "表达贴近",
+  aiFlavor: "AI 味",
+  reduced: "已降低",
+
+  pasteHint: "粘贴文字，改写成你的风格",
+  uploadAttachment: "上传附件",
+  inputPlaceholder: "在这里粘贴你想改写的文字...",
+  chars: "字",
+  applyProfile: "套用风格档案",
+  defaultProfile: "默认风格（不套用档案）",
+  samples: "篇样本",
+  dimensions: "维",
+  shorten: "缩短",
+  importedFiles: "已导入 {count} 个文件",
+  fileTooLarge: "{name} 超过 2MB，先跳过",
+  fileReadFailed: "{name} 读取失败",
+
+  styleVersion: "风格版",
+  editedCount: "已编辑 · {count} 处改动",
+  generating: "正在按你的风格基线调整…",
+  resultPlaceholder: "改写结果会出现在这里...",
+  rulesApplied: "{count} 条规则已应用",
+  noRulesApplied: "0 条规则已应用",
+  compensations: "{count} 维补偿",
+  noCompensations: "0 维补偿",
+  fidelityHigh: "保真度高",
+  fidelityReview: "保真待检",
+  fidelityLow: "保真度低",
+  platformAuto: "平台自动",
+  scoring: "评分中…",
+  copied: "已复制",
+  copy: "复制",
+  edit: "编辑",
+  download: "下载",
+  adoptLearn: "采用并学习",
+  regenerate: "重新生成",
+  cancel: "取消",
+  finishEdit: "完成编辑",
+  noCopyResult: "还没有可复制的结果",
+  copiedToast: "已复制到剪贴板",
+  copyFailed: "复制失败，请手动选择",
+  noDownloadResult: "还没有可下载的结果",
+  downloaded: "已下载文本文件",
+  generateBeforeAdopt: "先生成结果再采用",
+  editSaved: "已记录修改，采用时将作为风格样本学习",
+  noEditDetected: "未检测到修改",
+  editSignal: "编辑学习信号",
+  matchScore: "匹配度",
+  improved: "你改善了：",
+  attention: "注意：",
+  smallChange: "各维度变化不大，你的修改将作为新样本纳入基线。",
+
+  scoreSampleWarning: "样本不足",
+  collapseAnalysis: "收起详细分析",
+  expandAnalysis: "展开 12 维详细分析",
+  rewriteAdvice: "改写建议",
+
+  historyTitle: "历史记录",
+  historyDesc: "每次采用并学习的改写会自动保存到这里，可随时恢复回工作台继续编辑。",
+  clear: "清空",
+  noHistory: "还没有改写历史",
+  noHistoryDesc: "在工作台完成一次改写并「采用并学习」后，会出现在这里",
+  restored: "已恢复到工作台",
+  historyCleared: "已清空历史记录",
+  editedLearned: "已编辑学习",
+  match: "匹配",
+  rules: "条规则",
+  compensationShort: "维补偿",
+  original: "原文",
+  editedStyleVersion: "风格版（你编辑后）",
+  originalGenerated: "原始生成",
+  restoreWorkbench: "恢复到工作台",
+  backWorkbench: "返回工作台",
+
+  profilesTitle: "风格档案",
+  profilesDesc: "粘贴你的写作样本，系统按 12 维提取特征生成风格基线。改写时以此为标尺评分，偏离的维度自动补偿。",
+  newStyle: "新建风格",
+  noProfiles: "还没有风格档案",
+  createFirstStyle: "建立第一个风格",
+  unnamedStyle: "未命名风格",
+  styleName: "风格名称",
+  styleNamePlaceholder: "例如：聊天式随笔",
+  scenario: "适用场景",
+  articleSamples: "文章样本",
+  sampleHint: "一篇文章是一条样本，样本越多基线越准",
+  uploadHistory: "上传历史文章",
+  supportedFiles: "支持 txt / md / html / csv",
+  urlPlaceholder: "粘贴公开文章链接，自动抓取正文",
+  fetch: "抓取",
+  voiceInput: "语音输入样本",
+  listening: "正在听写…",
+  samplePlaceholder: "把一篇完整文章或一段素材粘进来，点「添加为样本」后会成为单独记录。",
+  addedSamples: "已添加 {count} 篇样本 · 待添加 {chars} 字",
+  addAsSample: "添加为样本",
+  generateBaseline: "生成基线",
+  styleAnalysis: "风格分析",
+  detailedAnalysis: "详细分析",
+  useInWorkbench: "套用到工作台",
+  saveRebuild: "保存并重建基线",
+  sampleMaterials: "样本文章 / 素材",
+  sampleMaterialsHint: "可继续追加，每篇会作为单独样本",
+  addAttachment: "添加附件",
+  appendUrlPlaceholder: "粘贴公开文章链接，追加到样本",
+  appendSamplePlaceholder: "粘贴新增样本，点击下方按钮添加为一篇独立样本",
+  existingSamples: "已有 {count} 篇样本 · 待添加 {chars} 字",
+  settings: "设置",
+  rebuildBaseline: "重建基线",
+  delete: "删除",
+  sampleCard: "样本 {index}",
+  noSamplesYet: "还没有添加样本。上传文件、抓取链接，或粘贴后点击「添加为样本」。",
+  userMeta: "用户画像与表达偏好",
+  userMetaHint: "可选，样本少时尤其有用",
+};
+
+const en: Dict = {
+  appName: "Voicy Style",
+  navWorkbench: "Workbench",
+  navProfiles: "Style Profiles",
+  navHistory: "History",
+  createStyle: "Create Style",
+  menu: "Menu",
+  language: "语言",
+
+  heroBadge: "AI Style Assistant",
+  heroTitle: "Teach AI to write in your voice",
+  heroDescription:
+    "Upload past articles, import public links, or paste your own samples. The system builds a 12-dimension style baseline, then edits new text with your rhythm, structure, tone, and explicit boundaries.",
+  startRewrite: "Start Rewriting",
+  createProfileFirst: "Create a Style First",
+  manageStyle: "Manage Styles",
+  tryFirst: "Try It First",
+  profileApplied: "Style profile applied · X content",
+  livePreview: "Live preview",
+  rewriteMine: "Rewrite in My Style",
+  styleMatch: "Style match",
+  input: "Input",
+  outputStyle: "Your Style Version",
+  adjustedByBaseline: "Adjusted by style baseline",
+  sentenceRhythm: "Sentence rhythm",
+  expressionCloseness: "Voice fit",
+  aiFlavor: "AI tone",
+  reduced: "Reduced",
+
+  pasteHint: "Paste text and rewrite it in your style",
+  uploadAttachment: "Upload file",
+  inputPlaceholder: "Paste the text you want to rewrite...",
+  chars: "chars",
+  applyProfile: "Apply style profile",
+  defaultProfile: "Default style, no profile",
+  samples: "samples",
+  dimensions: "dims",
+  shorten: "Shorten",
+  importedFiles: "Imported {count} file(s)",
+  fileTooLarge: "{name} is over 2MB, skipped",
+  fileReadFailed: "Could not read {name}",
+
+  styleVersion: "Style Version",
+  editedCount: "Edited · {count} changes",
+  generating: "Adjusting against your style baseline...",
+  resultPlaceholder: "The rewritten result will appear here...",
+  rulesApplied: "{count} rules applied",
+  noRulesApplied: "0 rules applied",
+  compensations: "{count} dimension fixes",
+  noCompensations: "0 dimension fixes",
+  fidelityHigh: "High fidelity",
+  fidelityReview: "Needs review",
+  fidelityLow: "Low fidelity",
+  platformAuto: "Auto platform",
+  scoring: "Scoring...",
+  copied: "Copied",
+  copy: "Copy",
+  edit: "Edit",
+  download: "Download",
+  adoptLearn: "Adopt and Learn",
+  regenerate: "Regenerate",
+  cancel: "Cancel",
+  finishEdit: "Finish Edit",
+  noCopyResult: "No result to copy yet",
+  copiedToast: "Copied to clipboard",
+  copyFailed: "Copy failed. Please select the text manually.",
+  noDownloadResult: "No result to download yet",
+  downloaded: "Text file downloaded",
+  generateBeforeAdopt: "Generate a result first",
+  editSaved: "Edit saved. It will become a style sample when adopted.",
+  noEditDetected: "No edit detected",
+  editSignal: "Edit learning signal",
+  matchScore: "Match",
+  improved: "Improved: ",
+  attention: "Watch: ",
+  smallChange: "Dimension changes are small. Your edit will still be added as a sample.",
+
+  scoreSampleWarning: "Low sample count",
+  collapseAnalysis: "Hide detailed analysis",
+  expandAnalysis: "Show 12-dimension analysis",
+  rewriteAdvice: "Rewrite advice",
+
+  historyTitle: "History",
+  historyDesc: "Adopted rewrites are saved here. Restore any session and keep editing in the workbench.",
+  clear: "Clear",
+  noHistory: "No rewrite history yet",
+  noHistoryDesc: "After you rewrite and adopt a result, it will appear here.",
+  restored: "Restored to workbench",
+  historyCleared: "History cleared",
+  editedLearned: "Edited and learned",
+  match: "Match",
+  rules: "rules",
+  compensationShort: "dimension fixes",
+  original: "Original",
+  editedStyleVersion: "Style version, after your edit",
+  originalGenerated: "Original generation",
+  restoreWorkbench: "Restore to Workbench",
+  backWorkbench: "Back to Workbench",
+
+  profilesTitle: "Style Profiles",
+  profilesDesc: "Paste writing samples. The system extracts a 12-dimension style baseline, scores rewrites against it, and adjusts dimensions that drift.",
+  newStyle: "New Style",
+  noProfiles: "No style profiles yet",
+  createFirstStyle: "Create First Style",
+  unnamedStyle: "Untitled style",
+  styleName: "Style name",
+  styleNamePlaceholder: "Example: conversational essays",
+  scenario: "Scenario",
+  articleSamples: "Writing samples",
+  sampleHint: "One article is one sample. More samples improve the baseline.",
+  uploadHistory: "Upload past articles",
+  supportedFiles: "txt / md / html / csv supported",
+  urlPlaceholder: "Paste a public article URL to extract text",
+  fetch: "Fetch",
+  voiceInput: "Voice input sample",
+  listening: "Listening...",
+  samplePlaceholder: "Paste one complete article or material. Click \"Add as sample\" to save it as a separate record.",
+  addedSamples: "{count} sample(s) added · {chars} chars pending",
+  addAsSample: "Add as Sample",
+  generateBaseline: "Generate Baseline",
+  styleAnalysis: "Style Analysis",
+  detailedAnalysis: "Detailed Analysis",
+  useInWorkbench: "Use in Workbench",
+  saveRebuild: "Save and Rebuild",
+  sampleMaterials: "Samples and Materials",
+  sampleMaterialsHint: "Add more samples. Each item is stored separately.",
+  addAttachment: "Add File",
+  appendUrlPlaceholder: "Paste a public article URL to append as a sample",
+  appendSamplePlaceholder: "Paste a new sample, then add it as a separate item",
+  existingSamples: "{count} sample(s) saved · {chars} chars pending",
+  settings: "Settings",
+  rebuildBaseline: "Rebuild baseline",
+  delete: "Delete",
+  sampleCard: "Sample {index}",
+  noSamplesYet: "No samples yet. Upload a file, fetch a link, or paste text and click \"Add as Sample\".",
+  userMeta: "User Profile and Expression Preferences",
+  userMetaHint: "Optional. Useful when sample count is low.",
+};
+
+const dictionaries = { zh, en };
+
+type I18nContextValue = {
+  lang: Lang;
+  setLang: (lang: Lang) => void;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+};
+
+const I18nContext = createContext<I18nContextValue | null>(null);
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>(() => {
+    const saved = localStorage.getItem("voicy.lang");
+    return saved === "en" ? "en" : "zh";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("voicy.lang", lang);
+    document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
+  }, [lang]);
+
+  const value = useMemo<I18nContextValue>(() => {
+    const t = (key: string, vars: Record<string, string | number> = {}) => {
+      const template = dictionaries[lang][key] ?? dictionaries.zh[key] ?? key;
+      return Object.entries(vars).reduce(
+        (text, [name, value]) => text.split(`{${name}}`).join(String(value)),
+        template,
+      );
+    };
+
+    return { lang, setLang: setLangState, t };
+  }, [lang]);
+
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+export function useI18n() {
+  const context = useContext(I18nContext);
+  if (!context) throw new Error("useI18n must be used within I18nProvider");
+  return context;
+}

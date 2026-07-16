@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========== 主题 Token（还原设计稿 Buffer 暖色珊瑚主题） ========== */
+:root {
+  --coral: #bf7e5e;
+  --coral-hover: #a96b4d;
+  --coral-light: #fdf6f2;
+  --coral-glow: rgba(191, 126, 94, 0.15);
+  --peach: #d4a48c;
+  --cream: #fafaf9;
+  --warm-white: #fefcfa;
+  --surface: #ffffff;
+  --ink: #1a1a1a;
+  --ink-secondary: #6b6560;
+  --ink-tertiary: #a9a29c;
+  --border: #ede8e3;
+  --border-light: #f5f0eb;
+  --success: #2d9d78;
+  --success-bg: #eefbf5;
+  --warning: #e5a000;
+  --warning-bg: #fff8e6;
+  --error: #e54d42;
+  --error-bg: #fef2f2;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(26, 26, 26, 0.04);
+  --shadow-md: 0 4px 16px rgba(26, 26, 26, 0.06);
+  --shadow-lg: 0 12px 40px rgba(26, 26, 26, 0.08);
+
+  --font-display: "DM Sans", "Noto Sans SC", -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  --font-body: "DM Sans", "Noto Sans SC", -apple-system, BlinkMacSystemFont,
+    sans-serif;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background-color: var(--cream);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: inherit;
+}
+
+textarea {
+  font-family: inherit;
+}
+
+/* ========== 动画 ========== */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dotPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+@keyframes heroRewriteInput {
+  0%,
+  36% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  46%,
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes heroRewriteOutput {
+  0%,
+  42% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  52%,
+  88% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ========== 工具类 ========== */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.animate-fade-slide-up {
+  animation: fadeSlideUp 0.6s ease-out both;
+}
+.animate-fade-scale-in {
+  animation: fadeScaleIn 0.8s ease-out both;
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+.animate-toast-in {
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 加载骨架光泽 */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(237, 232, 227, 0) 0%,
+    rgba(237, 232, 227, 0.6) 50%,
+    rgba(237, 232, 227, 0) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.hero-rewrite-input {
+  animation: heroRewriteInput 6s ease-in-out infinite;
+}
+
+.hero-rewrite-output {
+  animation: heroRewriteOutput 6s ease-in-out infinite;
+}
