@@ -651,8 +651,8 @@ export default function Profiles() {
         maxWidth="max-w-[860px]"
       >
         {detailProfile && (
-          <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-5">
-            <div className="space-y-4">
+          <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+            <div className="min-w-0 space-y-4">
               <div>
                 <label className="text-[13px] font-medium text-ink block mb-1.5">
                   {t("styleName")}
@@ -736,7 +736,7 @@ export default function Profiles() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3">
               <label className="text-[13px] font-medium text-ink block">
                 {t("sampleMaterials")}
                 <span className="text-ink-tertiary font-normal ml-1">
@@ -744,7 +744,7 @@ export default function Profiles() {
                 </span>
               </label>
               <SampleList samples={editSamples} onRemove={removeEditSampleItem} />
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <label className="inline-flex items-center justify-center gap-1.5 bg-cream border border-edge rounded-md px-3.5 py-2.5 text-[13px] font-medium text-ink-secondary hover:border-coral hover:text-coral transition-colors cursor-pointer">
                   <Upload size={14} />
                   {t("addAttachment")}
@@ -760,14 +760,14 @@ export default function Profiles() {
                   txt / md / html / csv
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-                <div className="relative">
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="relative min-w-0">
                   <Link size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary" />
                   <input
                     value={editUrl}
                     onChange={(e) => setEditUrl(e.target.value)}
                     placeholder={t("appendUrlPlaceholder")}
-                    className="w-full bg-cream border border-edge rounded-md pl-9 pr-3.5 py-2.5 text-sm text-ink outline-none focus:border-coral transition-colors placeholder:text-ink-tertiary"
+                    className="min-w-0 w-full bg-cream border border-edge rounded-md pl-9 pr-3.5 py-2.5 text-sm text-ink outline-none focus:border-coral transition-colors placeholder:text-ink-tertiary"
                   />
                 </div>
                 <button
@@ -922,7 +922,7 @@ function SampleList({
               <p className="text-[12px] font-semibold text-ink">
                 {t("sampleCard", { index: index + 1 })}
                 <span className="text-ink-tertiary font-normal ml-2">
-                  {item.length} 字
+                  {item.length} {t("chars")}
                 </span>
               </p>
               <p className="text-[12px] text-ink-secondary leading-relaxed line-clamp-2 mt-1">
