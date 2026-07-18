@@ -82,8 +82,8 @@ function baselineSummary(p: { baseline: StyleProfileLike["baseline"] }) {
   const contrast = b.numeric["function_words_connectors.contrast_per_sentence"]?.mean;
   const causal = b.numeric["function_words_connectors.causal_per_sentence"]?.mean;
   const example = b.numeric["function_words_connectors.example_per_sentence"]?.mean;
-  const notBut = b.numeric["sentence_patterns.not_but"]?.mean;
-  const ifThen = b.numeric["sentence_patterns.if_then"]?.mean;
+  const notBut = b.numeric["sentence_patterns.not_but_per_sentence"]?.mean;
+  const ifThen = b.numeric["sentence_patterns.if_then_per_sentence"]?.mean;
   const opening = b.categorical["discourse_structure.opening_type"];
   const openingMode = opening ? Object.entries(opening).sort((a, c) => c[1] - a[1])[0]?.[0] : null;
   const driver = b.categorical["content_organization.main_driver"];

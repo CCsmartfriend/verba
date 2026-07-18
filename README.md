@@ -38,7 +38,7 @@ Verba treats style as a profile built from evidence. It looks at repeated habits
 3. The app extracts a style baseline from those samples.
 4. The user pastes new text into the workbench.
 5. Verba compares the new text with the selected profile.
-6. The app rewrites only where needed, while preserving structure and meaning.
+6. The model first infers recurring style signals, then keeps or edits each sentence according to a concrete reason.
 7. The output receives a style match score and dimension-level feedback.
 
 ## Style Analysis Dimensions
@@ -78,6 +78,7 @@ The next iteration will align the bilingual analysis model around nine shared di
 - Tailwind CSS
 - Zustand
 - Cloudflare Workers
+- Cloudflare Workers AI
 - Wrangler
 
 ## Running Locally
@@ -98,6 +99,7 @@ Run checks:
 
 ```bash
 npm run lint
+npm test
 npm run build
 ```
 
@@ -173,7 +175,7 @@ The final product reflects a human-led workflow. I made the product, design, and
 - Add structured sample metadata with language, source, and scenario.
 - Add profile-level import from public links.
 - Add export and download options for rewritten text.
-- Add a more rigorous two-step rewrite pipeline: understand meaning first, then regenerate in the user's style.
+- Add evaluation datasets built from user-approved edits.
 
 ## Licence
 

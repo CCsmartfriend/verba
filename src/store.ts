@@ -130,22 +130,31 @@ function styleHints(profile?: StyleProfile): string {
     meta?.boundaries ? `boundaries=${meta.boundaries}` : "",
     `avg_sentence_length=${Math.round(meanOf(profile, "sentence_rhythm.avg_sentence_length"))}`,
     `short_sentence_ratio=${Math.round(meanOf(profile, "sentence_rhythm.short_sentence_ratio") * 100)}%`,
+    `avg_paragraph_chars=${Math.round(meanOf(profile, "paragraph_structure.avg_paragraph_chars"))}`,
+    `single_sentence_paragraph_ratio=${Math.round(meanOf(profile, "paragraph_structure.single_sentence_paragraph_ratio") * 100)}%`,
     `colloquial_per_1000=${meanOf(profile, "lexical_habits.colloquial_per_1000").toFixed(1)}`,
     `formal_per_1000=${meanOf(profile, "lexical_habits.formal_per_1000").toFixed(1)}`,
+    `first_person_singular_per_1000=${meanOf(profile, "pronoun_usage.first_person_singular_per_1000").toFixed(1)}`,
+    `second_person_per_1000=${meanOf(profile, "pronoun_usage.second_person_per_1000").toFixed(1)}`,
     `emoji_per_1000=${meanOf(profile, "punctuation_habits.emoji_per_1000").toFixed(1)}`,
+    `question_per_1000=${meanOf(profile, "punctuation_habits.question_per_1000").toFixed(1)}`,
+    `exclamation_per_1000=${meanOf(profile, "punctuation_habits.exclamation_per_1000").toFixed(1)}`,
     `humor_per_1000=${meanOf(profile, "tone_emotion.humor_per_1000").toFixed(1)}`,
     `infectious_per_1000=${meanOf(profile, "tone_emotion.infectious_per_1000").toFixed(1)}`,
+    `strong_judgment_per_sentence=${meanOf(profile, "tone_emotion.strong_judgment_per_sentence").toFixed(2)}`,
+    `suggestion_per_sentence=${meanOf(profile, "tone_emotion.suggestion_per_sentence").toFixed(2)}`,
     `contrast_per_sentence=${meanOf(profile, "function_words_connectors.contrast_per_sentence").toFixed(2)}`,
     `causal_per_sentence=${meanOf(profile, "function_words_connectors.causal_per_sentence").toFixed(2)}`,
     `example_per_sentence=${meanOf(profile, "function_words_connectors.example_per_sentence").toFixed(2)}`,
     avoidNotBut
       ? "not_but_pattern=hard_avoid"
-      : `not_but_pattern=${meanOf(profile, "sentence_patterns.not_but").toFixed(2)}`,
-    `if_then_pattern=${meanOf(profile, "sentence_patterns.if_then").toFixed(2)}`,
+      : `not_but_pattern=${meanOf(profile, "sentence_patterns.not_but_per_sentence").toFixed(2)}`,
+    `if_then_pattern=${meanOf(profile, "sentence_patterns.if_then_per_sentence").toFixed(2)}`,
     `opening=${modeOf(profile, "discourse_structure.opening_type")}`,
     `development=${modeOf(profile, "discourse_structure.development_type")}`,
+    `ending=${modeOf(profile, "discourse_structure.ending_type")}`,
     `content_driver=${modeOf(profile, "content_organization.main_driver")}`,
-    `top_keywords=${profile.baseline.top_keywords.slice(0, 16).join("、")}`,
+    `sample_keywords_reference=${profile.baseline.top_keywords.slice(0, 16).join("、")}`,
   ];
   return hints.filter(Boolean).join("\n");
 }
@@ -235,7 +244,9 @@ export const useStore = create<AppState>((set, get) => ({
           mode,
           scenario: effectiveProfile?.scenario ?? scenario,
           profileName: effectiveProfile?.name ?? "",
-          profileSample: effectiveProfile?.sample ?? "",
+          profileSample: effectiveProfile
+            ? sampleTextFrom(effectiveProfile.samples?.length ? effectiveProfile.samples : [effectiveProfile.sample])
+            : "",
           styleHints: styleHints(effectiveProfile),
           bannedWords: effectiveProfile?.bannedWords ?? [],
         }),
@@ -266,7 +277,7 @@ export const useStore = create<AppState>((set, get) => ({
     } catch {
       if (seq !== generationSeq) return;
       set({ result: fallback, isGenerating: false });
-      get().pushToast("模型接口暂不可用，已使用本地规则结果", "error");
+      get().pushToast("模型接口暂不可用，已保留原文，请稍后重试", "error");
     }
   },
 

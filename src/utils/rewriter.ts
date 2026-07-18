@@ -6,9 +6,7 @@ import type {
 } from "@/types";
 import { extractAll } from "@/scoring/extractors";
 import { scoreText } from "@/scoring/scorer";
-import type { AllFeatures } from "@/scoring/extractors";
 import type { ScoreReport } from "@/scoring/scorer";
-import { splitSentences } from "@/scoring/tokenize";
 
 // AI 腔短语移除/替换（去 AI 味模式 + 风格改写通用）
 const AI_PHRASES: Array<[RegExp, string]> = [
@@ -58,47 +56,14 @@ const FILLER_WORDS = [
 
 function dedupeSpace(s: string): string {
   return s
-    .replace(/\s{2,}/g, " ")
-    .replace(/\s+([，。！？、；：])/g, "$1")
-    .replace(/([，。！？])\s*/g, "$1")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+([，。！？、；：])/g, "$1")
+    .replace(/([，。！？])[ \t]*/g, "$1")
     .replace(/，+/g, "，")
-    .replace(/^[\s，。]+/, "")
-    .replace(/[，。]\s*([。！？])/g, "$1")
+    .replace(/^[ \t，。]+/, "")
+    .replace(/[，。][ \t]*([。！？])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-}
-
-// 应用禁用词：移除用户标记为"不想出现"的词
-function applyBannedWords(text: string, banned: string[]): string {
-  if (!banned.length) return text;
-  let out = text;
-  for (const w of banned) {
-    if (!w) continue;
-    out = out.replace(new RegExp(escapeRegExp(w) + "[，,]?", "g"), "");
-  }
-  return dedupeSpace(out);
-}
-
-function profileAvoidsNotBut(profile?: StyleProfile): boolean {
-  const boundaries = profile?.profileMeta?.boundaries ?? "";
-  return /(不喜欢|避免|不要|少用|禁用|不用).{0,12}(不是.{0,4}而是|不是而是|不是)/.test(
-    boundaries,
-  );
-}
-
-function removeNotButPattern(text: string): string {
-  return dedupeSpace(
-    text
-      .replace(/不只是([^。！？\n]{1,40})，?而是/g, "除了$1，更重要的是")
-      .replace(/不仅是([^。！？\n]{1,40})，?而是/g, "除了$1，更重要的是")
-      .replace(/不是([^。！？\n]{1,40})，?而是/g, "更准确地说，是")
-      .replace(/并不是([^。！？\n]{1,40})，?而是/g, "更准确地说，是")
-      .replace(/，?而不是/g, "，也少不了"),
-  );
-}
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // ==================== 基础改写动作 ====================
@@ -143,173 +108,19 @@ function wechatRewrite(input: string): string {
   return `${hook}${body}${cta}`;
 }
 
-// ==================== 评分驱动的补偿式改写（改成我的风格） ====================
-
-// 单条补偿规则：针对某个偏离维度做调整
-interface Compensation {
-  dim: string;
-  apply: (text: string, features: AllFeatures, baseline: StyleProfile["baseline"]) => string;
-}
-
-// 补偿规则集：覆盖规则引擎能调的维度
-const COMPENSATIONS: Compensation[] = [
-  // 句长与节奏：句子过长则切短
-  {
-    dim: "sentence_rhythm",
-    apply: (text, features, baseline) => {
-      const baseAvg = baseline?.numeric["sentence_rhythm.avg_sentence_length"]?.mean ?? 24;
-      const curAvg = features.sentence_rhythm.avg_sentence_length;
-      if (curAvg <= baseAvg + 4) return text;
-      // 切分长句：把超过 baseAvg*1.6 的子句在逗号处断为句
-      const threshold = Math.max(18, baseAvg * 1.5);
-      let out = text;
-      // 在长句中的某个逗号改句号
-      const sentences = splitSentences(out);
-      const rebuilt = sentences.map((s) => {
-        const chars = s.replace(/[\s，。！？、；：]/g, "");
-        if (chars.length < threshold) return s;
-        // 找到中间附近的逗号，替换为句号
-        const commaIdx: number[] = [];
-        for (let i = 0; i < s.length; i++) if (s[i] === "，") commaIdx.push(i);
-        if (commaIdx.length === 0) return s;
-        const mid = commaIdx[Math.floor(commaIdx.length / 2)];
-        return s.slice(0, mid) + "。" + s.slice(mid + 1);
-      });
-      out = rebuilt.join("");
-      return out;
-    },
-  },
-  // 词汇习惯：去 AI 腔 + 口语化
-  {
-    dim: "lexical_habits",
-    apply: (text, features) => {
-      if (features.lexical_habits.ai_cliche_per_1000 <= 1) return text;
-      return deaiRewrite(text);
-    },
-  },
-  // 标点习惯：连续感叹号归一
-  {
-    dim: "punctuation_habits",
-    apply: (text) => {
-      let out = text.replace(/！{2,}/g, "。");
-      // 中英文标点统一
-      out = out.replace(/,/g, "，").replace(/\./g, "。");
-      return out;
-    },
-  },
-  // 人称使用：缺少第一人称时注入
-  {
-    dim: "pronoun_usage",
-    apply: (text, features, baseline) => {
-      const baseFirst = baseline?.numeric["pronoun_usage.first_person_singular_per_1000"]?.mean ?? 0;
-      const curFirst = features.pronoun_usage.first_person_singular_per_1000;
-      if (curFirst >= baseFirst || baseFirst < 2) return text;
-      // 在第一句后注入"我觉得"/"我的感受是"
-      if (/我/.test(text)) return text;
-      return text.replace(/^([^\s]{0,12}[，。])/, "$1我的感受是，");
-    },
-  },
-  // 功能词与连接词：缺少转折词时注入
-  {
-    dim: "function_words_connectors",
-    apply: (text, features, baseline) => {
-      const baseContrast = baseline?.numeric["function_words_connectors.contrast_per_sentence"]?.mean ?? 0;
-      const curContrast = features.function_words_connectors.contrast_per_sentence;
-      if (curContrast >= baseContrast || baseContrast < 0.1) return text;
-      // 在中段某个句号前加转折
-      const sentences = splitSentences(text);
-      if (sentences.length < 3) return text;
-      const idx = Math.floor(sentences.length / 2);
-      sentences[idx] = "但" + sentences[idx].replace(/^但[，,]?/, "");
-      return sentences.join("");
-    },
-  },
-  // 段落结构：单段过长则拆段
-  {
-    dim: "paragraph_structure",
-    apply: (text, features) => {
-      if (features.paragraph_structure.avg_paragraph_chars < 120) return text;
-      // 按 2-3 句一段重新分段
-      const sentences = splitSentences(text);
-      const groups: string[] = [];
-      for (let i = 0; i < sentences.length; i += 2) {
-        groups.push(sentences.slice(i, i + 2).join(""));
-      }
-      return groups.join("\n\n");
-    },
-  },
-  // 语气情绪：弱化过强的命令/强判断
-  {
-    dim: "tone_emotion",
-    apply: (text, features) => {
-      if (features.tone_emotion.strong_judgment_per_sentence < 0.3) return text;
-      const out = text
-        .replace(/必须/g, "最好")
-        .replace(/绝对/g, "多半")
-        .replace(/毫无疑问[，,]?/g, "")
-        .replace(/一定/g, "尽量");
-      return out;
-    },
-  },
-];
-
-// 评分驱动的"改成我的风格"
+// 本地仅负责保底展示。真正的风格改写由 Worker 模型完成。
 function mineRewrite(input: string, profile?: StyleProfile): {
   text: string;
   compensations: number;
   report: ScoreReport | null;
 } {
-  let text = input;
-  // 先做一轮基础去 AI 味
-  text = deaiRewrite(text);
-
-  if (!profile?.baseline) {
-    // 无基线：只做去 AI 味 + 口语化，无评分
-    return { text, compensations: 1, report: null };
-  }
-
-  const baseline = profile.baseline;
-  const scenario = profile.scenario ?? "social_post";
-
-  // 迭代补偿：最多两轮，每轮评分→找偏离维度→施加补偿
-  let appliedCount = 0;
-  const appliedDims = new Set<string>();
-  for (let round = 0; round < 2; round++) {
-    const features = extractAll(text, scenario);
-    const report = scoreText(features, baseline);
-    // 找出偏离最大的维度（分数最低且尚未补偿过）
-    const lowDims = report.dimensions
-      .filter((d) => d.score < 70 && !appliedDims.has(d.key))
-      .sort((a, b) => a.score - b.score)
-      .slice(0, 3);
-    if (lowDims.length === 0) break;
-    let changed = false;
-    for (const dim of lowDims) {
-      const comp = COMPENSATIONS.find((c) => c.dim === dim.key);
-      if (!comp) continue;
-      const before = text;
-      text = comp.apply(text, features, baseline);
-      if (text !== before) {
-        appliedDims.add(dim.key);
-        appliedCount++;
-        changed = true;
-      }
-    }
-    if (!changed) break;
-  }
-
-  // 应用禁用词
-  text = applyBannedWords(text, profile.bannedWords ?? []);
-  if (profileAvoidsNotBut(profile)) {
-    text = removeNotButPattern(text);
-  }
-  text = dedupeSpace(text).trim();
-
-  // 最终评分
-  const finalFeatures = extractAll(text, scenario);
-  const finalReport = scoreText(finalFeatures, baseline);
-
-  return { text, compensations: appliedCount, report: finalReport };
+  if (!profile?.baseline) return { text: input, compensations: 0, report: null };
+  const features = extractAll(input, profile.scenario ?? "social_post");
+  return {
+    text: input,
+    compensations: 0,
+    report: scoreText(features, profile.baseline),
+  };
 }
 
 // ==================== 主入口 ====================
@@ -342,7 +153,7 @@ export function rewrite(
       const r = mineRewrite(trimmed, profile);
       text = r.text;
       platform = profile ? profile.name : "默认风格";
-      fidelity = profile ? "high" : "review";
+      fidelity = "low";
       compensations = r.compensations;
       report = r.report;
       break;
