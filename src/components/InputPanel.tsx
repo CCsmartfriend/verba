@@ -1,8 +1,9 @@
-import { type ChangeEvent } from "react";
+import { useEffect, useMemo, type ChangeEvent } from "react";
 import { ChevronDown, Upload, User } from "lucide-react";
 import { useStore } from "@/store";
 import type { StyleMode } from "@/types";
 import { useI18n } from "@/i18n";
+import { profileLanguage } from "@/utils/language";
 
 const REWRITE_MODES: {
   mode: StyleMode;
@@ -19,7 +20,17 @@ export function InputPanel() {
   const setActiveProfile = useStore((s) => s.setActiveProfile);
   const runGenerate = useStore((s) => s.runGenerate);
   const pushToast = useStore((s) => s.pushToast);
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
+  const visibleProfiles = useMemo(
+    () => profiles.filter((profile) => profileLanguage(profile) === lang),
+    [lang, profiles],
+  );
+
+  useEffect(() => {
+    if (activeProfileId && !visibleProfiles.some((profile) => profile.id === activeProfileId)) {
+      setActiveProfile(null);
+    }
+  }, [activeProfileId, setActiveProfile, visibleProfiles]);
 
   const charCount = inputText.length;
 
@@ -98,7 +109,7 @@ export function InputPanel() {
             className="appearance-none w-full sm:w-auto bg-warm-white border border-edge rounded-full text-[13px] text-ink py-2 pl-4 pr-9 outline-none focus:border-coral cursor-pointer hover:border-[#D5CFC8] transition-colors"
           >
             <option value="">{t("defaultProfile")}</option>
-            {profiles.map((p) => (
+            {visibleProfiles.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} ({p.baseline?.sample_count ?? 0} {t("samples")} · {p.rulesCount} {t("dimensions")})
               </option>

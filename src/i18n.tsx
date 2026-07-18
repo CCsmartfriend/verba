@@ -5,7 +5,7 @@ export type Lang = "zh" | "en";
 type Dict = Record<string, string>;
 
 const zh: Dict = {
-  appName: "风格克隆",
+  appName: "Verba",
   navWorkbench: "工作台",
   navProfiles: "风格档案",
   navHistory: "历史记录",
@@ -144,7 +144,7 @@ const zh: Dict = {
 };
 
 const en: Dict = {
-  appName: "Verba Style",
+  appName: "Verba",
   navWorkbench: "Workbench",
   navProfiles: "Style Profiles",
   navHistory: "History",
@@ -294,12 +294,12 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
-    const saved = localStorage.getItem("voicy.lang");
-    return saved === "en" ? "en" : "zh";
+    const saved = localStorage.getItem("verba.lang");
+    return saved === "zh" ? "zh" : "en";
   });
 
   useEffect(() => {
-    localStorage.setItem("voicy.lang", lang);
+    localStorage.setItem("verba.lang", lang);
     document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
   }, [lang]);
 

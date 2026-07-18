@@ -8,7 +8,6 @@ import { useI18n } from "@/i18n";
 const LINKS: Array<{ to: string; labelKey: string; end: boolean }> = [
   { to: "/", labelKey: "navWorkbench", end: true },
   { to: "/profiles", labelKey: "navProfiles", end: false },
-  { to: "/history", labelKey: "navHistory", end: false },
 ];
 
 export function Navbar() {

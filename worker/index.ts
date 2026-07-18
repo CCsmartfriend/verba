@@ -467,7 +467,7 @@ export default {
 
       const response = await fetch(target.toString(), {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; VoicyStyleBot/1.0)",
+          "User-Agent": "Mozilla/5.0 (compatible; VerbaBot/1.0)",
           Accept: "text/html,text/plain;q=0.9,*/*;q=0.8",
         },
       });

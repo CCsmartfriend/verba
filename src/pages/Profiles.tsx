@@ -21,6 +21,7 @@ import { relativeTime } from "@/utils/seed";
 import type { ScenarioType, StyleProfile, StyleProfileMeta } from "@/types";
 import { SCENARIO_TEMPLATES } from "@/scoring/patterns";
 import { useI18n } from "@/i18n";
+import { profileLanguage } from "@/utils/language";
 
 const SCENARIOS: { id: ScenarioType; label: string }[] = [
   { id: "social_post", label: "社交动态" },
@@ -104,6 +105,7 @@ export default function Profiles() {
   const navigate = useNavigate();
   const { lang, t } = useI18n();
   const { profiles } = useStore();
+  const visibleProfiles = profiles.filter((profile) => profileLanguage(profile) === lang);
   const addProfile = useStore((s) => s.addProfile);
   const removeProfile = useStore((s) => s.removeProfile);
   const setActiveProfile = useStore((s) => s.setActiveProfile);
@@ -131,8 +133,8 @@ export default function Profiles() {
   const [editMeta, setEditMeta] = useState<StyleProfileMeta>(emptyMeta);
   const [isFetchingEditUrl, setIsFetchingEditUrl] = useState(false);
 
-  const settingProfile = profiles.find((p) => p.id === settingId);
-  const detailProfile = profiles.find((p) => p.id === detailId);
+  const settingProfile = visibleProfiles.find((p) => p.id === settingId);
+  const detailProfile = visibleProfiles.find((p) => p.id === detailId);
 
   const resetCreateForm = () => {
     setName("");
@@ -218,7 +220,7 @@ export default function Profiles() {
       return;
     }
     const recognition = new SpeechRecognition();
-    recognition.lang = "zh-CN";
+      recognition.lang = lang === "zh" ? "zh-CN" : "en-US";
     recognition.interimResults = false;
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
@@ -344,7 +346,7 @@ export default function Profiles() {
 
   const openSetting = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const p = profiles.find((x) => x.id === id);
+    const p = visibleProfiles.find((x) => x.id === id);
     setSettingId(id);
     setBannedInput(p?.bannedWords.join("、") ?? "");
   };
@@ -381,7 +383,7 @@ export default function Profiles() {
         </button>
       </div>
 
-      {profiles.length === 0 ? (
+      {visibleProfiles.length === 0 ? (
         <div className="bg-white rounded-lg border border-dashed border-edge py-16 px-6 text-center">
           <FileText size={40} className="text-ink-tertiary mx-auto mb-3" strokeWidth={1.5} />
           <p className="text-ink-secondary text-sm mb-4">{t("noProfiles")}</p>
@@ -395,7 +397,7 @@ export default function Profiles() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {profiles.map((p) => {
+          {visibleProfiles.map((p) => {
             const summary = baselineSummary(p as unknown as { baseline: StyleProfileLike["baseline"] });
             return (
               <div
@@ -451,35 +453,35 @@ export default function Profiles() {
                 {summary && (
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mb-3 text-[11px]">
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">平均句长</span>
-                      <span className="text-ink-secondary font-medium">{Math.round(summary.avgLen ?? 0)} 字</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "平均句长" : "Average sentence"}</span>
+                      <span className="text-ink-secondary font-medium">{Math.round(summary.avgLen ?? 0)} {lang === "zh" ? "字" : "chars"}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">短句占比</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "短句占比" : "Short sentences"}</span>
                       <span className="text-ink-secondary font-medium">{Math.round((summary.shortRatio ?? 0) * 100)}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">口语词/千字</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "口语词/千字" : "Colloquial / 1k"}</span>
                       <span className="text-ink-secondary font-medium">{(summary.colloq ?? 0).toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">第一人称/千字</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "第一人称/千字" : "First person / 1k"}</span>
                       <span className="text-ink-secondary font-medium">{(summary.firstPerson ?? 0).toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">开场习惯</span>
-                      <span className="text-ink-secondary font-medium">{openingLabel(summary.openingMode)}</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "开场习惯" : "Opening"}</span>
+                      <span className="text-ink-secondary font-medium">{openingLabel(summary.openingMode, lang)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">内容驱动</span>
-                      <span className="text-ink-secondary font-medium">{driverLabel(summary.driverMode)}</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "内容驱动" : "Content driver"}</span>
+                      <span className="text-ink-secondary font-medium">{driverLabel(summary.driverMode, lang)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">表情/千字</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "表情/千字" : "Emoji / 1k"}</span>
                       <span className="text-ink-secondary font-medium">{(summary.emoji ?? 0).toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-ink-tertiary">幽默感</span>
+                      <span className="text-ink-tertiary">{lang === "zh" ? "幽默感" : "Humour"}</span>
                       <span className="text-ink-secondary font-medium">{(summary.humor ?? 0).toFixed(1)}</span>
                     </div>
                   </div>
@@ -489,7 +491,7 @@ export default function Profiles() {
                   <div className="flex flex-wrap gap-1 mb-2">
                     {p.bannedWords.slice(0, 4).map((w) => (
                       <span key={w} className="text-[10px] text-error bg-error-bg px-1.5 py-0.5 rounded-full">
-                        禁用：{w}
+                        {lang === "zh" ? "禁用" : "Avoid"}: {w}
                       </span>
                     ))}
                     {p.bannedWords.length > 4 && (
@@ -504,10 +506,10 @@ export default function Profiles() {
 
                 <div className="flex items-center justify-between pt-3 mt-3 border-t border-edge-light">
                   <span className="text-[12px] text-coral font-medium bg-coral-light px-2.5 py-1 rounded-full">
-                    {p.rulesCount} 维特征
+                    {p.rulesCount} {lang === "zh" ? "维特征" : "dimensions"}
                   </span>
                   <span className="text-[12px] text-ink-tertiary">
-                    {relativeTime(p.createdAt)}
+                    {relativeTime(p.createdAt, lang)}
                   </span>
                 </div>
               </div>
@@ -672,22 +674,25 @@ export default function Profiles() {
                 </div>
                 {(() => {
                   const s = baselineSummary(detailProfile as unknown as { baseline: StyleProfileLike["baseline"] });
+                  const labels = lang === "zh"
+                    ? ["平均句长", "短句占比", "口语词/千字", "第一人称/千字", "表情/千字", "幽默感/千字", "感染力/千字", "正式词/千字", "转折/句", "因果/句", "举例/句", "不是…而是", "如果…就", "开场习惯", "内容驱动"]
+                    : ["Average sentence", "Short sentences", "Colloquial / 1k", "First person / 1k", "Emoji / 1k", "Humour / 1k", "Emotional pull / 1k", "Formal words / 1k", "Contrasts / sentence", "Causes / sentence", "Examples / sentence", "Not-but pattern", "If-then pattern", "Opening", "Content driver"];
                   const rows = [
-                    ["平均句长", `${Math.round(s?.avgLen ?? 0)} 字`],
-                    ["短句占比", `${Math.round((s?.shortRatio ?? 0) * 100)}%`],
-                    ["口语词/千字", (s?.colloq ?? 0).toFixed(1)],
-                    ["第一人称/千字", (s?.firstPerson ?? 0).toFixed(1)],
-                    ["表情/千字", (s?.emoji ?? 0).toFixed(1)],
-                    ["幽默感/千字", (s?.humor ?? 0).toFixed(1)],
-                    ["感染力/千字", (s?.infectious ?? 0).toFixed(1)],
-                    ["正式词/千字", (s?.formal ?? 0).toFixed(1)],
-                    ["转折/句", (s?.contrast ?? 0).toFixed(2)],
-                    ["因果/句", (s?.causal ?? 0).toFixed(2)],
-                    ["举例/句", (s?.example ?? 0).toFixed(2)],
-                    ["不是…而是", (s?.notBut ?? 0).toFixed(2)],
-                    ["如果…就", (s?.ifThen ?? 0).toFixed(2)],
-                    ["开场习惯", openingLabel(s?.openingMode ?? null)],
-                    ["内容驱动", driverLabel(s?.driverMode ?? null)],
+                    [labels[0], `${Math.round(s?.avgLen ?? 0)} ${lang === "zh" ? "字" : "chars"}`],
+                    [labels[1], `${Math.round((s?.shortRatio ?? 0) * 100)}%`],
+                    [labels[2], (s?.colloq ?? 0).toFixed(1)],
+                    [labels[3], (s?.firstPerson ?? 0).toFixed(1)],
+                    [labels[4], (s?.emoji ?? 0).toFixed(1)],
+                    [labels[5], (s?.humor ?? 0).toFixed(1)],
+                    [labels[6], (s?.infectious ?? 0).toFixed(1)],
+                    [labels[7], (s?.formal ?? 0).toFixed(1)],
+                    [labels[8], (s?.contrast ?? 0).toFixed(2)],
+                    [labels[9], (s?.causal ?? 0).toFixed(2)],
+                    [labels[10], (s?.example ?? 0).toFixed(2)],
+                    [labels[11], (s?.notBut ?? 0).toFixed(2)],
+                    [labels[12], (s?.ifThen ?? 0).toFixed(2)],
+                    [labels[13], openingLabel(s?.openingMode ?? null, lang)],
+                    [labels[14], driverLabel(s?.driverMode ?? null, lang)],
                   ];
                   return (
                     <div className="grid grid-cols-2 gap-2">
@@ -702,7 +707,7 @@ export default function Profiles() {
                 })()}
                 {detailProfile.baseline?.top_keywords.length ? (
                   <div className="mt-3 bg-white rounded-md border border-edge-light p-3">
-                    <p className="text-[11px] text-ink-tertiary mb-2">高频用词</p>
+                    <p className="text-[11px] text-ink-tertiary mb-2">{lang === "zh" ? "高频用词" : "Frequent words"}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {detailProfile.baseline.top_keywords.slice(0, 18).map((word) => (
                         <span key={word} className="text-[11px] text-coral bg-coral-light px-2 py-0.5 rounded-full">
@@ -883,7 +888,7 @@ export default function Profiles() {
         className="mt-10 inline-flex items-center gap-1.5 text-[13px] text-ink-tertiary hover:text-coral transition-colors"
       >
         <ArrowLeft size={14} />
-        返回工作台
+        {t("backWorkbench")}
       </button>
     </div>
   );
@@ -983,27 +988,27 @@ function MetaFields({
   );
 }
 
-function openingLabel(s: string | null): string {
-  const map: Record<string, string> = {
-    problem_opening: "提问式",
-    conclusion_first: "结论先行",
-    story_opening: "故事式",
-    counterintuitive: "反常识",
-    observation: "观察式",
+function openingLabel(s: string | null, lang: "zh" | "en"): string {
+  const map: Record<string, [string, string]> = {
+    problem_opening: ["提问式", "Question"],
+    conclusion_first: ["结论先行", "Conclusion first"],
+    story_opening: ["故事式", "Story"],
+    counterintuitive: ["反常识", "Counterintuitive"],
+    observation: ["观察式", "Observation"],
   };
-  return s ? (map[s] ?? s) : "—";
+  return s ? (map[s]?.[lang === "zh" ? 0 : 1] ?? s) : "—";
 }
 
-function driverLabel(s: string | null): string {
-  const map: Record<string, string> = {
-    case_driven: "案例驱动",
-    data_driven: "数据驱动",
-    concept_driven: "概念驱动",
-    problem_driven: "问题驱动",
-    method_driven: "方法论",
-    opinion_driven: "观点驱动",
+function driverLabel(s: string | null, lang: "zh" | "en"): string {
+  const map: Record<string, [string, string]> = {
+    case_driven: ["案例驱动", "Case driven"],
+    data_driven: ["数据驱动", "Data driven"],
+    concept_driven: ["概念驱动", "Concept driven"],
+    problem_driven: ["问题驱动", "Problem driven"],
+    method_driven: ["方法论", "Method driven"],
+    opinion_driven: ["观点驱动", "Opinion driven"],
   };
-  return s ? (map[s] ?? s) : "—";
+  return s ? (map[s]?.[lang === "zh" ? 0 : 1] ?? s) : "—";
 }
 
 function scenarioLabelEn(s: ScenarioType): string {

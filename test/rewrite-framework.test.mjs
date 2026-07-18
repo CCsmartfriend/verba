@@ -6,6 +6,7 @@ import {
   preserveInputFormatting,
   violatesHardConstraints,
 } from "../worker/index.ts";
+import { detectContentLanguage } from "../src/utils/language.ts";
 
 const avoidNegativeContrast = [
   "Do not use Chinese negative-contrast patterns such as not-but.",
@@ -41,4 +42,9 @@ test("format repair never collapses separate source paragraphs", () => {
 test("repeated stock pivots are rejected", () => {
   const output = "关键在于行动。核心在于坚持。";
   assert.match(violatesHardConstraints(output, []), /重复使用/);
+});
+
+test("profiles can be separated by sample language", () => {
+  assert.equal(detectContentLanguage("This is an English writing sample."), "en");
+  assert.equal(detectContentLanguage("这是一篇中文写作样本。"), "zh");
 });

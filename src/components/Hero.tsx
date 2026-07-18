@@ -6,12 +6,13 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/store";
 import { useI18n } from "@/i18n";
+import { profileLanguage } from "@/utils/language";
 
 export function Hero({ onStart }: { onStart: () => void }) {
   const navigate = useNavigate();
-  const profileCount = useStore((s) => s.profiles.length);
-  const hasProfiles = profileCount > 0;
   const { lang, t } = useI18n();
+  const profiles = useStore((s) => s.profiles);
+  const hasProfiles = profiles.some((profile) => profileLanguage(profile) === lang);
 
   const handlePrimary = () => {
     if (hasProfiles) {

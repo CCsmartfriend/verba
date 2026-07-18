@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import type { Fidelity } from "@/types";
 import { ScoreReportPanel } from "@/components/ScoreReport";
 import { useI18n } from "@/i18n";
+import { dimensionLabel } from "@/utils/language";
 
 const FIDELITY_META: Record<Fidelity, { labelKey: string; dot: string }> = {
   high: { labelKey: "fidelityHigh", dot: "bg-success" },
@@ -32,7 +33,7 @@ export function OutputPanel() {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState("");
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
 
   const hasResult = !!result && !isGenerating;
 
@@ -215,12 +216,12 @@ export function OutputPanel() {
             <div className="space-y-1">
               {learnSignal.improvedDims.length > 0 && (
                 <p className="text-[12px] text-ink-secondary">
-                  {t("improved")}{learnSignal.improvedDims.map((d) => `${d.label}(+${Math.round(d.delta)})`).join("、")}
+                  {t("improved")}{learnSignal.improvedDims.map((d) => `${dimensionLabel(d.label, lang)} (+${Math.round(d.delta)})`).join(", ")}
                 </p>
               )}
               {learnSignal.regressedDims.length > 0 && (
                 <p className="text-[12px] text-ink-tertiary">
-                  {t("attention")}{learnSignal.regressedDims.map((d) => `${d.label}(${Math.round(d.delta)})`).join("、")}
+                  {t("attention")}{learnSignal.regressedDims.map((d) => `${dimensionLabel(d.label, lang)} (${Math.round(d.delta)})`).join(", ")}
                 </p>
               )}
               {learnSignal.improvedDims.length === 0 && learnSignal.regressedDims.length === 0 && (
