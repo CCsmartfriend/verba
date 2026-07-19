@@ -113,13 +113,16 @@ export function OutputPanel() {
           {t("styleVersion")}
         </span>
         <div className="flex items-center gap-2">
-          {hasResult && hasChanges && !isEditing && (
+          {hasResult && !isEditing && (
             <button
               onClick={() => setShowChanges((value) => !value)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-coral hover:text-coral-hover transition-colors"
+              disabled={!hasChanges}
+              className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-coral shadow-sm hover:text-coral-hover transition-colors disabled:text-ink-tertiary disabled:shadow-none"
             >
               <GitCompare size={12} />
-              {t(showChanges ? "hideChanges" : "showChanges")}
+              {hasChanges
+                ? t(showChanges ? "hideChanges" : "showChanges")
+                : t("noChangesDetected")}
             </button>
           )}
           {editInfo?.edited && !isEditing && (
@@ -164,7 +167,7 @@ export function OutputPanel() {
                     <del
                       key={index}
                       title={t("removedText")}
-                      className="bg-error-bg text-error/80 decoration-error/70 rounded-[2px]"
+                      className="bg-[#FAD7D7] text-error decoration-error rounded-[2px]"
                     >
                       {segment.text}
                     </del>
@@ -172,7 +175,7 @@ export function OutputPanel() {
                     <mark
                       key={index}
                       title={t("changedText")}
-                      className="bg-coral/20 text-inherit border-b border-coral/50 rounded-[2px]"
+                      className="bg-[#F3C6AE] text-inherit border-b-2 border-coral rounded-[2px]"
                     >
                       {segment.text}
                     </mark>
@@ -189,11 +192,11 @@ export function OutputPanel() {
         {hasResult && hasChanges && showChanges && !isEditing && (
           <div className="flex items-center gap-4 -mt-2 text-[11px] text-ink-tertiary">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-3 h-2.5 rounded-[2px] bg-coral/20 border-b border-coral/50" />
+              <span className="w-3 h-2.5 rounded-[2px] bg-[#F3C6AE] border-b-2 border-coral" />
               {t("changedText")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-3 h-2.5 rounded-[2px] bg-error-bg border-b border-error/50" />
+              <span className="w-3 h-2.5 rounded-[2px] bg-[#FAD7D7] border-b border-error" />
               {t("removedText")}
             </span>
             <span>{t("unchangedText")}</span>
