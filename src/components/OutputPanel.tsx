@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Check,
   Copy,
@@ -16,6 +16,7 @@ import type { Fidelity } from "@/types";
 import { ScoreReportPanel } from "@/components/ScoreReport";
 import { useI18n } from "@/i18n";
 import { dimensionLabel } from "@/utils/language";
+import { diffOutput } from "@/utils/textDiff";
 
 const FIDELITY_META: Record<Fidelity, { labelKey: string; dot: string }> = {
   high: { labelKey: "fidelityHigh", dot: "bg-success" },
@@ -24,7 +25,7 @@ const FIDELITY_META: Record<Fidelity, { labelKey: string; dot: string }> = {
 };
 
 export function OutputPanel() {
-  const { result, isGenerating, editInfo, learnSignal } = useStore();
+  const { inputText, result, isGenerating, editInfo, learnSignal } = useStore();
   const runGenerate = useStore((s) => s.runGenerate);
   const commitEdit = useStore((s) => s.commitEdit);
   const cancelEdit = useStore((s) => s.cancelEdit);
@@ -32,10 +33,16 @@ export function OutputPanel() {
 
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showChanges, setShowChanges] = useState(true);
   const [draft, setDraft] = useState("");
   const { lang, t } = useI18n();
 
   const hasResult = !!result && !isGenerating;
+  const diff = useMemo(
+    () => result?.text ? diffOutput(inputText, result.text) : [],
+    [inputText, result?.text],
+  );
+  const hasChanges = diff.some((segment) => segment.changed && segment.text.trim());
 
   const startEdit = () => {
     if (!result?.text) return;
@@ -105,12 +112,23 @@ export function OutputPanel() {
         <span className="text-[11px] font-semibold uppercase tracking-[1.5px] text-ink-tertiary">
           {t("styleVersion")}
         </span>
-        {editInfo?.edited && !isEditing && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-coral bg-coral-light px-2 py-0.5 rounded-full">
-            <GitCompare size={11} />
-            {t("editedCount", { count: editInfo.changedChars })}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {hasResult && hasChanges && !isEditing && (
+            <button
+              onClick={() => setShowChanges((value) => !value)}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-coral hover:text-coral-hover transition-colors"
+            >
+              <GitCompare size={12} />
+              {t(showChanges ? "hideChanges" : "showChanges")}
+            </button>
+          )}
+          {editInfo?.edited && !isEditing && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-coral bg-coral-light px-2 py-0.5 rounded-full">
+              <GitCompare size={11} />
+              {t("editedCount", { count: editInfo.changedChars })}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="px-6 sm:px-7 pt-4 flex-1 flex flex-col gap-4">
@@ -141,7 +159,17 @@ export function OutputPanel() {
             />
           ) : hasResult && result.text ? (
             <p className="relative z-10 text-ink text-[15px] leading-[1.75] whitespace-pre-wrap animate-fade-in">
-              {result.text}
+              {showChanges && hasChanges
+                ? diff.map((segment, index) => segment.changed && segment.text.trim() ? (
+                    <mark
+                      key={index}
+                      title={t("changedText")}
+                      className="bg-coral/20 text-inherit border-b border-coral/50 rounded-[2px]"
+                    >
+                      {segment.text}
+                    </mark>
+                  ) : <span key={index}>{segment.text}</span>)
+                : result.text}
             </p>
           ) : (
             <span className="relative z-10 text-ink-tertiary text-sm leading-relaxed">
@@ -149,6 +177,16 @@ export function OutputPanel() {
             </span>
           )}
         </div>
+
+        {hasResult && hasChanges && showChanges && !isEditing && (
+          <div className="flex items-center gap-4 -mt-2 text-[11px] text-ink-tertiary">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-3 h-2.5 rounded-[2px] bg-coral/20 border-b border-coral/50" />
+              {t("changedText")}
+            </span>
+            <span>{t("unchangedText")}</span>
+          </div>
+        )}
 
         {/* 状态检查 */}
         <div className="flex flex-wrap gap-4">

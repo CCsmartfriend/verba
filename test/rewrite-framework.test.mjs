@@ -7,6 +7,7 @@ import {
   violatesHardConstraints,
 } from "../worker/index.ts";
 import { detectContentLanguage } from "../src/utils/language.ts";
+import { diffOutput } from "../src/utils/textDiff.ts";
 
 const avoidNegativeContrast = [
   "Do not use Chinese negative-contrast patterns such as not-but.",
@@ -47,4 +48,12 @@ test("repeated stock pivots are rejected", () => {
 test("profiles can be separated by sample language", () => {
   assert.equal(detectContentLanguage("This is an English writing sample."), "en");
   assert.equal(detectContentLanguage("这是一篇中文写作样本。"), "zh");
+});
+
+test("rewrite diff preserves the output and marks changed words", () => {
+  const revised = "I prefer clear writing.";
+  const diff = diffOutput("I like clear writing.", revised);
+  assert.equal(diff.map((segment) => segment.text).join(""), revised);
+  assert.match(diff.filter((segment) => segment.changed).map((segment) => segment.text).join(""), /prefer/);
+  assert.match(diff.filter((segment) => !segment.changed).map((segment) => segment.text).join(""), /clear writing/);
 });

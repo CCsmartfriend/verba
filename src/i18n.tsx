@@ -48,6 +48,10 @@ const zh: Dict = {
 
   styleVersion: "风格版",
   editedCount: "已编辑 · {count} 处改动",
+  showChanges: "显示修改",
+  hideChanges: "隐藏修改",
+  changedText: "已修改",
+  unchangedText: "保留原文",
   generating: "正在按你的风格基线调整…",
   resultPlaceholder: "改写结果会出现在这里...",
   rulesApplied: "{count} 条规则已应用",
@@ -187,6 +191,10 @@ const en: Dict = {
 
   styleVersion: "Style Version",
   editedCount: "Edited · {count} changes",
+  showChanges: "Show changes",
+  hideChanges: "Hide changes",
+  changedText: "Changed",
+  unchangedText: "Unchanged",
   generating: "Adjusting against your style baseline...",
   resultPlaceholder: "The rewritten result will appear here...",
   rulesApplied: "{count} rules applied",
