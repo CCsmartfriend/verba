@@ -169,6 +169,7 @@ interface AppState {
   scenario: ScenarioType;
   result: RewriteResult | null;
   isGenerating: boolean;
+  generationError: string | null;
   editInfo: EditInfo | null;
   // 编辑学习信号（采用并学习时生成）
   learnSignal: EditLearnSignal | null;
@@ -210,15 +211,16 @@ export const useStore = create<AppState>((set, get) => ({
   scenario: "social_post",
   result: null,
   isGenerating: false,
+  generationError: null,
   editInfo: null,
   learnSignal: null,
   toasts: [],
 
-  setInputText: (t) => set({ inputText: t }),
+  setInputText: (t) => set({ inputText: t, generationError: null }),
   setMode: (m) => set({ mode: m }),
   setScenario: (s) => set({ scenario: s }),
   setActiveProfile: (id) => set({ activeProfileId: id }),
-  clearResult: () => set({ result: null, editInfo: null, learnSignal: null }),
+  clearResult: () => set({ result: null, generationError: null, editInfo: null, learnSignal: null }),
 
   runGenerate: async () => {
     const seq = ++generationSeq;
@@ -227,7 +229,7 @@ export const useStore = create<AppState>((set, get) => ({
       get().pushToast("先在左侧粘贴要改写的文字", "info");
       return;
     }
-    set({ isGenerating: true, editInfo: null, learnSignal: null });
+    set({ isGenerating: true, generationError: null, editInfo: null, learnSignal: null });
     const profile = profiles.find((p) => p.id === activeProfileId);
     // 临时把当前场景写进 profile，保证评分用对场景
     const effectiveProfile = profile
@@ -236,9 +238,12 @@ export const useStore = create<AppState>((set, get) => ({
     const fallback = rewrite(inputText, mode, effectiveProfile);
 
     try {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 60_000);
       const response = await fetch("/api/rewrite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           text: inputText,
           mode,
@@ -251,6 +256,7 @@ export const useStore = create<AppState>((set, get) => ({
           bannedWords: effectiveProfile?.bannedWords ?? [],
         }),
       });
+      window.clearTimeout(timeout);
       if (!response.ok) throw new Error(await response.text());
       const data = (await response.json()) as { text?: string };
       const modelText = data.text?.trim();
@@ -273,11 +279,12 @@ export const useStore = create<AppState>((set, get) => ({
           fidelity: "review",
         },
         isGenerating: false,
+        generationError: null,
       });
-    } catch {
+    } catch (error) {
       if (seq !== generationSeq) return;
-      set({ result: fallback, isGenerating: false });
-      get().pushToast("模型接口暂不可用，已保留原文，请稍后重试", "error");
+      console.error("Rewrite request failed", error);
+      set({ result: null, isGenerating: false, generationError: "rewrite_failed" });
     }
   },
 

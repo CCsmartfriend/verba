@@ -6,6 +6,7 @@ import {
   Pencil,
   RefreshCw,
   Sparkles,
+  CircleAlert,
   X,
   GitCompare,
   Sliders,
@@ -25,7 +26,7 @@ const FIDELITY_META: Record<Fidelity, { labelKey: string; dot: string }> = {
 };
 
 export function OutputPanel() {
-  const { inputText, result, isGenerating, editInfo, learnSignal } = useStore();
+  const { inputText, result, isGenerating, generationError, editInfo, learnSignal } = useStore();
   const runGenerate = useStore((s) => s.runGenerate);
   const commitEdit = useStore((s) => s.commitEdit);
   const cancelEdit = useStore((s) => s.cancelEdit);
@@ -152,6 +153,21 @@ export function OutputPanel() {
                 <span className="w-1.5 h-1.5 rounded-full bg-coral animate-pulse" />
                 {t("generating")}
               </p>
+            </div>
+          ) : generationError ? (
+            <div className="relative z-10 m-auto max-w-sm text-center">
+              <CircleAlert size={28} className="mx-auto mb-3 text-error" />
+              <p className="text-[15px] font-semibold text-ink">{t("rewriteFailed")}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-ink-tertiary">
+                {t("rewriteFailedDescription")}
+              </p>
+              <button
+                onClick={runGenerate}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-coral px-4 py-2 text-[13px] font-semibold text-white hover:bg-coral-hover"
+              >
+                <RefreshCw size={13} />
+                {t("retry")}
+              </button>
             </div>
           ) : isEditing ? (
             <textarea

@@ -50,8 +50,7 @@ const MODE_REQUIREMENTS: Record<string, string> = {
 };
 
 const MODELS = [
-  "@cf/zai-org/glm-4.7-flash",
-  "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
 ];
 
 function json(data: unknown, status = 200) {
