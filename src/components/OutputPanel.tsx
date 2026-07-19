@@ -42,7 +42,7 @@ export function OutputPanel() {
     () => result?.text ? diffOutput(inputText, result.text) : [],
     [inputText, result?.text],
   );
-  const hasChanges = diff.some((segment) => segment.changed && segment.text.trim());
+  const hasChanges = diff.some((segment) => segment.operation !== "unchanged");
 
   const startEdit = () => {
     if (!result?.text) return;
@@ -160,7 +160,15 @@ export function OutputPanel() {
           ) : hasResult && result.text ? (
             <p className="relative z-10 text-ink text-[15px] leading-[1.75] whitespace-pre-wrap animate-fade-in">
               {showChanges && hasChanges
-                ? diff.map((segment, index) => segment.changed && segment.text.trim() ? (
+                ? diff.map((segment, index) => segment.operation === "removed" ? (
+                    <del
+                      key={index}
+                      title={t("removedText")}
+                      className="bg-error-bg text-error/80 decoration-error/70 rounded-[2px]"
+                    >
+                      {segment.text}
+                    </del>
+                  ) : segment.operation === "added" ? (
                     <mark
                       key={index}
                       title={t("changedText")}
@@ -183,6 +191,10 @@ export function OutputPanel() {
             <span className="inline-flex items-center gap-1.5">
               <span className="w-3 h-2.5 rounded-[2px] bg-coral/20 border-b border-coral/50" />
               {t("changedText")}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-3 h-2.5 rounded-[2px] bg-error-bg border-b border-error/50" />
+              {t("removedText")}
             </span>
             <span>{t("unchangedText")}</span>
           </div>

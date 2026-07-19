@@ -53,7 +53,13 @@ test("profiles can be separated by sample language", () => {
 test("rewrite diff preserves the output and marks changed words", () => {
   const revised = "I prefer clear writing.";
   const diff = diffOutput("I like clear writing.", revised);
-  assert.equal(diff.map((segment) => segment.text).join(""), revised);
-  assert.match(diff.filter((segment) => segment.changed).map((segment) => segment.text).join(""), /prefer/);
-  assert.match(diff.filter((segment) => !segment.changed).map((segment) => segment.text).join(""), /clear writing/);
+  assert.equal(diff.filter((segment) => segment.operation !== "removed").map((segment) => segment.text).join(""), revised);
+  assert.match(diff.filter((segment) => segment.operation === "added").map((segment) => segment.text).join(""), /prefer/);
+  assert.match(diff.filter((segment) => segment.operation === "removed").map((segment) => segment.text).join(""), /like/);
+  assert.match(diff.filter((segment) => segment.operation === "unchanged").map((segment) => segment.text).join(""), /clear writing/);
+});
+
+test("rewrite diff exposes deletion-only changes", () => {
+  const diff = diffOutput("Keep this. Remove this sentence.", "Keep this.");
+  assert.match(diff.filter((segment) => segment.operation === "removed").map((segment) => segment.text).join(""), /Remove this sentence/);
 });
